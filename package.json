@@ -1,41 +1,51 @@
 {
-  "name": "lavaca-starter",
-  "version": "2.3.2",
-  "description": "A Lavaca app",
-  "main": "Gruntfile.js",
-  "url": "http://getlavaca.com",
-  "devDependencies": {
-    "mout": "0.x",
-    "fs-extra": "~0.6.3",
-    "grunt": "0.4.1",
-    "express": "3.1.x",
-    "underscore": "1.4.x",
-    "preprocess": "1.0.x",
-    "connect": "2.4.4",
-    "deferreds": "1.x",
-    "grunt-contrib-clean": "0.4.1",
-    "grunt-contrib-copy": "0.4.1",
-    "grunt-contrib-less": "0.6.3",
-    "grunt-contrib-uglify": "0.2.2",
-    "grunt-contrib-jshint": "0.1.x",
-    "grunt-contrib-jasmine": "git://github.com/zship/grunt-contrib-jasmine.git",
-    "grunt-amd-dist": "0.4.x",
-    "grunt-amd-test": "0.4.x",
-    "grunt-amd-check": "0.5.x",
-    "xml2js": "0.2.x",
-    "promisemonkey": "0.1.x",
-    "grunt-contrib-yuidoc": "0.4.0",
-    "grunt-contrib-watch": "0.4.4",
-    "dustjs-linkedin": "2.0.2",
-    "dustjs-helpers": "1.1.1",
-    "grunt-shell": "0.3.x"
-  },
-  "repository": "git@github.com:mutualmobile/lavaca.git",
-  "keywords": [
-    "Lavaca",
-    "mvc",
-    "javascript"
-  ],
-  "author": "Mutual Mobile",
-  "license": "MIT"
+    "name": "bootstrap"
+  , "description": "Sleek, intuitive, and powerful front-end framework for faster and easier web development."
+  , "version": "3.0.3"
+  , "keywords": ["bootstrap", "css"]
+  , "homepage": "http://getbootstrap.com"
+  , "author": "Twitter, Inc."
+  , "scripts": { "test": "grunt test" }
+  , "repository": {
+      "type": "git"
+    , "url": "https://github.com/twbs/bootstrap.git"
+  }
+  , "bugs": {
+      "url": "https://github.com/twbs/bootstrap/issues"
+  }
+  , "licenses": [
+    {
+        "type": "Apache-2.0"
+      , "url": "http://www.apache.org/licenses/LICENSE-2.0"
+    }
+  ]
+  , "devDependencies": {
+      "btoa": "~1.1.1"
+    , "grunt": "~0.4.1"
+    , "grunt-contrib-clean": "~0.5.0"
+    , "grunt-contrib-concat": "~0.3.0"
+    , "grunt-contrib-connect": "~0.5.0"
+    , "grunt-contrib-copy": "~0.4.1"
+    , "grunt-contrib-jshint": "~0.7.0"
+    , "grunt-contrib-qunit": "~0.3.0"
+    , "grunt-contrib-uglify": "~0.2.4"
+    , "grunt-contrib-watch": "~0.5.3"
+    , "grunt-html-validation": "~0.1.6"
+    , "grunt-jekyll": "~0.4.0"
+    , "grunt-recess": "~0.5.0"
+    , "grunt-saucelabs": "~4.1.2"
+    , "grunt-sed": "~0.1.1"
+    , "regexp-quote": "~0.0.0"
+  }
+  , "jspm": {
+      "main": "js/bootstrap"
+    , "directories": { "lib": "dist" }
+    , "shim": {
+        "js/bootstrap": {
+            "imports": "jquery"
+          , "exports": "$"
+        }
+    }
+    , "buildConfig": { "uglify": true }
+  }
 }

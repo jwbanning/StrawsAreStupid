@@ -1,454 +1,337 @@
-module.exports = function( grunt ) {
+/* jshint node: true */
 
-  'use strict';
+module.exports = function(grunt) {
+  "use strict";
 
-  grunt.loadTasks('tasks/server');
-  grunt.loadTasks('tasks/pkg');
-  grunt.loadTasks('tasks/preprocess');
-  grunt.loadTasks('tasks/blueprint');
-  grunt.loadTasks('tasks/build');
-  grunt.loadTasks('tasks/buildProject');
-  grunt.loadTasks('tasks/initCordova');
-  grunt.loadTasks('tasks/initPlatforms');
-  grunt.loadTasks('tasks/cordovaBuild');
-  grunt.loadTasks('tasks/cordovaInit');
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-contrib-less');
-  grunt.loadNpmTasks('grunt-contrib-jshint');
-  grunt.loadNpmTasks('grunt-contrib-jasmine');
-  grunt.loadNpmTasks('grunt-amd-dist');
-  grunt.loadNpmTasks('grunt-amd-test');
-  grunt.loadNpmTasks('grunt-amd-check');
-  grunt.loadNpmTasks('grunt-contrib-yuidoc');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-shell');
+  // Force use of Unix newlines
+  grunt.util.linefeed = '\n';
 
+  RegExp.quote = require('regexp-quote')
+  var btoa = require('btoa')
+  // Project configuration.
   grunt.initConfig({
-    paths: {
-      src: {
-        root: 'src',
-        www: '<%= paths.src.root %>/www',
-        ios: '<%= paths.src.root %>/ios',
-        android: '<%= paths.src.root %>/android'
-      },
-      lib: {
-        atnotate: 'libs/atnotate'
-      },
-      tmp: {
-        root: 'tmp',
-        www: '<%= paths.tmp.root %>/www',
-        ios: '<%= paths.tmp.root %>/ios',
-        android: '<%= paths.tmp.root %>/android'
-      },
-      cordovaInit: {
-        root: 'cordova',
-        www: '<%= paths.cordovaInit.root %>/www'
-      },
-      build: {
-        root: 'build',
-        www: '<%= paths.build.root %>/www',
-        ios: '<%= paths.cordovaInit.root %>/platforms/ios',
-        android: '<%= paths.cordovaInit.root %>/platforms/android',
-        androidLocalProperties: '<%= paths.build.android %>local.properties'
-      },
-      asset: {
-        ios: '<%= paths.build.ios %>/www',
-        android: '<%= paths.build.android %>/assets/www'
-      },
-      out: {
-        index: 'index.html',
-        css: 'css/app',
-        js: 'js',
-        cordova: 'cordova.js'
-      },
-      'package': {
-        root: 'pkg',
-        android: '<%= paths.package.root %>/<%= package.name %>.apk',
-        ios: '<%= paths.package.root %>/<%= package.name %>.ipa'
-      },
-      doc: 'doc',
-      copy: {
-        www: [
-          '<%= paths.out.index %>',
-          '<%= paths.out.css %>/<%= package.name %>.css ',
-          '<%= paths.out.js %>/<%= package.name %>.min.js',
-          'configs/**/*',
-          'assets/**/*',
-          'messages/**/*',
-          'config.xml'
-        ]
-      }
-    },
 
-    'package': grunt.file.readJSON('package.json'),
+    // Metadata.
+    pkg: grunt.file.readJSON('package.json'),
+    banner: '/*!\n' +
+              ' * Bootstrap v<%= pkg.version %> (<%= pkg.homepage %>)\n' +
+              ' * Copyright <%= grunt.template.today("yyyy") %> <%= pkg.author %>\n' +
+              ' * Licensed under <%= _.pluck(pkg.licenses, "url").join(", ") %>\n' +
+              ' */\n\n',
+    jqueryCheck: 'if (typeof jQuery === "undefined") { throw new Error("Bootstrap requires jQuery") }\n\n',
 
+    // Task configuration.
     clean: {
-      tmp: ['<%= paths.tmp.root %>'],
-      iosGitIgnore: ['cordova/platforms/ios/.gitignore'],
-      build: ['<%= paths.build.root %>'],
-      'package': ['<%= paths.package.root %>'],
-      cordova: ['<%= paths.cordovaInit.www %>'],
-      init: ['<%= paths.cordovaInit.root %>']
-    },
-
-    uglify: {
-      all: {
-        options: {
-          banner: '/*! <%= pkg.name %> - v<%= pkg.version %> - ' +
-             '<%= grunt.template.today("yyyy-mm-dd") %> |  License: <%= package.license %> */'
-        },
-        files: [
-          {
-            src: '<%= paths.tmp.www %>/<%= paths.out.js %>/<%= package.name %>.min.js',
-            dest: '<%= paths.tmp.www %>/<%= paths.out.js %>/<%= package.name %>.min.js'
-          }
-        ]
-      }
-    },
-
-    preprocess: {
-      www: {
-        options: {
-          locals: {
-            css: '<link rel="stylesheet" type="text/css" href="<%= paths.out.css %>/<%= package.name %>.css" />\n',
-            js: '<script src="<%= paths.out.js %>/<%= package.name %>.min.js"></script>\n'
-          }
-        },
-        files: [{
-          src: '<%= paths.tmp.www %>/<%= paths.out.index %>',
-          dest: '<%= paths.build.www %>/<%= paths.out.index %>'
-        }]
-      },
-      ios: {
-        options: {
-          locals: {
-            css: '<%= preprocess.www.options.locals.css %>',
-            js: (function() {
-              return [
-                '<%= paths.out.cordova %>',
-                '<%= paths.out.js %>/<%= package.name %>.min.js'
-              ]
-                .map(function(file) {
-                  return '<script src="' + file + '"></script>';
-                })
-                .join('\n') + '\n';
-            })()
-          }
-        },
-        files: [{
-          src: '<%= paths.tmp.www %>/<%= paths.out.index %>',
-          dest: '<%= paths.asset.ios %>/<%= paths.out.index %>'
-        }]
-      },
-      android: {
-        options: {
-          locals: {
-            css: '<%= preprocess.www.options.locals.css %>',
-            js: '<%= preprocess.ios.options.locals.js %>'
-          }
-        },
-        files: [{
-          src: '<%= paths.tmp.www %>/<%= paths.out.index %>',
-          dest: '<%= paths.asset.android %>/<%= paths.out.index %>'
-        }]
-      }
-    },
-
-    less: {
-      build: {
-        options: {
-          compress: true
-        },
-        files: [
-          {
-            src: '<%= paths.tmp.www %>/css/app/app.less',
-            dest: '<%= paths.tmp.www %>/<%= paths.out.css %>/<%= package.name %>.css'
-          }
-        ]
-      }
-    },
-
-    jasmine: {
-      all: ['test/runner.html'],
-      options: {
-        junit: {
-          path: 'log/tests',
-          consolidate: true
-        }
-      }
-    },
-
-
-
-    'amd-test': {
-      mode: 'jasmine',
-      files: 'test/unit/**/*.js'
+      dist: ['dist']
     },
 
     jshint: {
+      options: {
+        jshintrc: 'js/.jshintrc'
+      },
+      gruntfile: {
+        src: 'Gruntfile.js'
+      },
       src: {
-        options: {
-          jshintrc: '<%= paths.src.www %>/js/.jshintrc'
-        },
-        files: {
-          src: '<%= paths.src.www %>/js/**/*.js'
-        }
+        src: ['js/*.js']
       },
       test: {
-        options: {
-          jshintrc: 'test/unit/.jshintrc'
-        },
-        files: {
-          src: 'test/unit/**/*.js'
-        }
+        src: ['js/tests/unit/*.js']
       }
     },
 
-    server: {
-      local: {
-        options: {
-          port: 8080,
-          vhost: 'localhost',
-          base: 'src/www',
-          apiPrefix: '/api',
-          apiBaseUrl: 'configure-to-specific-api',
-          proxyPort: '80',// change to 443 for https
-          proxyProtocol: 'http'//change to https if ssl is required
-        }
+    concat: {
+      options: {
+        banner: '<%= banner %><%= jqueryCheck %>',
+        stripBanners: false
       },
-      prod: {
-        options: {
-          port: 8080,
-          vhost: 'localhost',
-          base: 'build/www',
-          apiPrefix: '/api*'
-        }
+      bootstrap: {
+        src: [
+          'js/transition.js',
+          'js/alert.js',
+          'js/button.js',
+          'js/carousel.js',
+          'js/collapse.js',
+          'js/dropdown.js',
+          'js/modal.js',
+          'js/tooltip.js',
+          'js/popover.js',
+          'js/scrollspy.js',
+          'js/tab.js',
+          'js/affix.js'
+        ],
+        dest: 'dist/js/<%= pkg.name %>.js'
+      }
+    },
+
+    uglify: {
+      options: {
+        banner: '<%= banner %>',
+        report: 'min'
       },
-      doc: {
+      bootstrap: {
+        src: ['<%= concat.bootstrap.dest %>'],
+        dest: 'dist/js/<%= pkg.name %>.min.js'
+      }
+    },
+
+    recess: {
+      options: {
+        compile: true,
+        banner: '<%= banner %>'
+      },
+      bootstrap: {
+        src: ['less/bootstrap.less'],
+        dest: 'dist/css/<%= pkg.name %>.css'
+      },
+      min: {
         options: {
-          port: 8080,
-          vhost: 'localhost',
-          base: 'doc'
-        }
+          compress: true
+        },
+        src: ['less/bootstrap.less'],
+        dest: 'dist/css/<%= pkg.name %>.min.css'
+      },
+      theme: {
+        src: ['less/theme.less'],
+        dest: 'dist/css/<%= pkg.name %>-theme.css'
+      },
+      theme_min: {
+        options: {
+          compress: true
+        },
+        src: ['less/theme.less'],
+        dest: 'dist/css/<%= pkg.name %>-theme.min.css'
       }
     },
 
     copy: {
-      cordovaConfig: {
-        files: [
-          {
-            src: '<%= paths.cordovaInit.root %>/www/config.xml',
-            dest: '<%= paths.src.www %>/config.xml'
-          }
-        ]
-      },
-      tmp: {
-        files: [
-          {
-            expand: true,
-            cwd: '<%= paths.src.root %>',
-            src: '**/*',
-            dest: '<%= paths.tmp.root %>/'
-          },
-          {
-            expand: true,
-            cwd: '<%= paths.src.root %>',
-            src: '.cordova/**',
-            dest: '<%= paths.tmp.root %>/'
-          }
-        ]
-      },
-      www: {
-        files: [
-          {
-            expand: true,
-            cwd: '<%= paths.tmp.www %>/',
-            src: '<%= paths.copy.www %>',
-            dest: '<%= paths.build.www %>/'
-          }
-        ]
-      },
-      cordova: {
-        files: [
-          {
-            expand: true,
-            cwd: '<%= paths.tmp.www %>/',
-            src: '<%= paths.copy.www %>',
-            dest: '<%= paths.cordovaInit.www %>/'
-          }
-        ]
+      fonts: {
+        expand: true,
+        src: ["fonts/*"],
+        dest: 'dist/'
       }
     },
 
-    pkg: {
-      ios: {
-        options: {
-          identity: 'iPhone Distribution: Mutual Mobile'
-        },
-        files: [
-          {
-            src: '<%= paths.build.ios %>',
-            dest: '<%= paths.package.ios %>'
-          }
-        ]
-      },
-      android: {
-        options: {
-          targetSdk: undefined
-        },
-        files: [
-          {
-            src: '<%= paths.build.android %>',
-            dest: '<%= paths.package.android %>'
-          }
-        ]
-      }
-    },
-
-    'amd-check': {
-      files: [
-        '<%= paths.src.www %>/js/**/*.js',
-        'test/unit/**/*.js'
-      ]
-    },
-
-    'amd-dist': {
-      all: {
-        options: {
-          standalone: true
-        },
-        files: [
-          {
-            src: [
-              '<%= paths.tmp.www %>/js/libs/require.js',
-              '<%= paths.tmp.www %>/js/app/boot.js',
-              '<%= paths.tmp.www %>/js/templates.js'
-            ],
-            dest: '<%= paths.tmp.www %>/<%= paths.out.js %>/<%= package.name %>.min.js'
-          }
-        ]
-      }
-    },
-
-    blueprint: {
+    qunit: {
       options: {
-        dest: '<%= paths.src.www %>/js/app',
-        appName: 'app'
+        inject: 'js/tests/unit/phantom.js'
       },
-      lavaca:{
-        options:{
-          map:{
-            View: 'ui/views/View',
-            PageView: 'ui/views/pageviews/PageView',
-            Model: 'models/Model',
-            Collection: 'collections/Collection',
-            Controller: 'net/Controller',
-            Control: 'ui/views/controls/Control'
-          }
+      files: ['js/tests/*.html']
+    },
+
+    connect: {
+      server: {
+        options: {
+          port: 3000,
+          base: '.'
         }
       }
     },
 
-    requirejs: {
-      baseUrl: '<%= paths.src.www %>/js',
-      mainConfigFile: '<%= paths.src.www %>/js/app/boot.js',
-      optimize: 'none',
-      keepBuildDir: true,
-      locale: "en-us",
-      useStrict: false,
-      skipModuleInsertion: false,
-      findNestedDependencies: false,
-      removeCombined: false,
-      preserveLicenseComments: false,
-      logLevel: 0
+    jekyll: {
+      docs: {}
     },
 
-    yuidoc: {
-      compile: {
-        name: '<%= pkg.name %>',
-        description: '<%= pkg.description %>',
-        version: '<%= pkg.version %>',
-        url: '<%= pkg.homepage %>',
-        options: {
-          paths: '<%= paths.src.www %>/js',
-          outdir: '<%= paths.doc %>',
-          exclude: '<%= paths.src.www %>/js/libs',
-          linkNatives: true,
-          themedir: 'libs/yuidoc/themes/default'
-        }
+    validation: {
+      options: {
+        reset: true,
+        relaxerror: [
+          "Bad value X-UA-Compatible for attribute http-equiv on element meta.",
+          "Element img is missing required attribute src."
+        ]
+      },
+      files: {
+        src: ["_gh_pages/**/*.html"]
       }
     },
 
     watch: {
-      scripts: {
-        files: ['src/www/**/*.js'],
-        tasks: ['yuidoc']
-      }
-    },
-
-    buildProject: {
-      local: {
-        options: {
-          tasks: ['less:build', 'amd-dist:all', 'uglify:all', 'preprocess']
-        }
+      src: {
+        files: '<%= jshint.src.src %>',
+        tasks: ['jshint:src', 'qunit']
       },
-      staging: {
-        options: {
-          tasks: ['less:build', 'amd-dist:all', 'uglify:all', 'preprocess']
-        }
+      test: {
+        files: '<%= jshint.test.src %>',
+        tasks: ['jshint:test', 'qunit']
       },
-      production: {
-        options: {
-          tasks: ['yuidoc:compile', 'less:build', 'amd-dist:all', 'uglify:all', 'preprocess']
-        }
+      recess: {
+        files: 'less/*.less',
+        tasks: ['recess']
       }
     },
 
-    initCordova: {
-      init: {
-        options: {
-          appName: 'App',
-          id: 'com.mm.App'
-        }
+    sed: {
+      versionNumber: {
+        pattern: (function () {
+          var old = grunt.option('oldver')
+          return old ? RegExp.quote(old) : old
+        })(),
+        replacement: grunt.option('newver'),
+        recursive: true
       }
     },
 
-    initPlatforms: {
-      init: {
+    'saucelabs-qunit': {
+      all: {
         options: {
-          platforms: ['ios', 'android']
-        }
-      }
-    },
-
-    shell: {
-      mkCordovaDir: {
-        command: 'mkdir <%= paths.cordovaInit.cordovaRoot %>',
-        options: {
-          stdout: true
+          build: process.env.TRAVIS_JOB_ID,
+          concurrency: 3,
+          urls: ['http://127.0.0.1:3000/js/tests/index.html'],
+          browsers: [
+            // See https://saucelabs.com/docs/platforms/webdriver
+            {
+              browserName: 'safari',
+              version: '6',
+              platform: 'OS X 10.8'
+            },
+            {
+              browserName: 'chrome',
+              version: '28',
+              platform: 'OS X 10.6'
+            },
+            /* FIXME: currently fails 1 tooltip test
+            {
+              browserName: 'firefox',
+              version: '25',
+              platform: 'OS X 10.6'
+            },*/
+            // Mac Opera not currently supported by Sauce Labs
+            /* FIXME: currently fails 1 tooltip test
+            {
+              browserName: 'internet explorer',
+              version: '11',
+              platform: 'Windows 8.1'
+            },*/
+            /*
+            {
+              browserName: 'internet explorer',
+              version: '10',
+              platform: 'Windows 8'
+            },
+            {
+              browserName: 'internet explorer',
+              version: '9',
+              platform: 'Windows 7'
+            },
+            {
+              browserName: 'internet explorer',
+              version: '8',
+              platform: 'Windows 7'
+            },
+            {// unofficial
+              browserName: 'internet explorer',
+              version: '7',
+              platform: 'Windows XP'
+            },
+            */
+            {
+              browserName: 'chrome',
+              version: '31',
+              platform: 'Windows 8.1'
+            },
+            {
+              browserName: 'firefox',
+              version: '25',
+              platform: 'Windows 8.1'
+            },
+            // Win Opera 15+ not currently supported by Sauce Labs
+            {
+              browserName: 'iphone',
+              version: '6.1',
+              platform: 'OS X 10.8'
+            },
+            // iOS Chrome not currently supported by Sauce Labs
+            // Linux (unofficial)
+            {
+              browserName: 'chrome',
+              version: '30',
+              platform: 'Linux'
+            },
+            {
+              browserName: 'firefox',
+              version: '25',
+              platform: 'Linux'
+            }
+            // Android Chrome not currently supported by Sauce Labs
+            /* Android Browser (super-unofficial)
+            {
+              browserName: 'android',
+              version: '4.0',
+              platform: 'Linux'
+            }
+            */
+          ],
         }
       }
     }
-
-
   });
 
-  grunt.registerTask('default', 'runs the tests and starts local server', [
-    'amd-test',
-    'jasmine',
-    'server'
-  ]);
 
-  grunt.registerTask('test', 'generates runner and runs the tests', [
-    'amd-test',
-    'jasmine'
-  ]);
+  // These plugins provide necessary tasks.
+  grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-concat');
+  grunt.loadNpmTasks('grunt-contrib-connect');
+  grunt.loadNpmTasks('grunt-contrib-copy');
+  grunt.loadNpmTasks('grunt-contrib-jshint');
+  grunt.loadNpmTasks('grunt-contrib-qunit');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-watch');
+  grunt.loadNpmTasks('grunt-html-validation');
+  grunt.loadNpmTasks('grunt-jekyll');
+  grunt.loadNpmTasks('grunt-recess');
+  grunt.loadNpmTasks('grunt-saucelabs');
+  grunt.loadNpmTasks('grunt-sed');
 
-  grunt.registerTask('doc', 'compiles documentation and starts a server', [
-    'yuidoc',
-    'server:doc'
-  ]);
+  // Docs HTML validation task
+  grunt.registerTask('validate-html', ['jekyll', 'validation']);
 
+  // Test task.
+  var testSubtasks = ['dist-css', 'jshint', 'qunit', 'validate-html'];
+  // Only run Sauce Labs tests if there's a Sauce access key
+  if (typeof process.env.SAUCE_ACCESS_KEY !== 'undefined') {
+    testSubtasks.push('connect');
+    testSubtasks.push('saucelabs-qunit');
+  }
+  grunt.registerTask('test', testSubtasks);
+
+  // JS distribution task.
+  grunt.registerTask('dist-js', ['concat', 'uglify']);
+
+  // CSS distribution task.
+  grunt.registerTask('dist-css', ['recess']);
+
+  // Fonts distribution task.
+  grunt.registerTask('dist-fonts', ['copy']);
+
+  // Full distribution task.
+  grunt.registerTask('dist', ['clean', 'dist-css', 'dist-fonts', 'dist-js']);
+
+  // Default task.
+  grunt.registerTask('default', ['test', 'dist', 'build-customizer']);
+
+  // Version numbering task.
+  // grunt change-version-number --oldver=A.B.C --newver=X.Y.Z
+  // This can be overzealous, so its changes should always be manually reviewed!
+  grunt.registerTask('change-version-number', ['sed']);
+
+  // task for building customizer
+  grunt.registerTask('build-customizer', 'Add scripts/less files to customizer.', function () {
+    var fs = require('fs')
+
+    function getFiles(type) {
+      var files = {}
+      fs.readdirSync(type)
+        .filter(function (path) {
+          return type == 'fonts' ? true : new RegExp('\\.' + type + '$').test(path)
+        })
+        .forEach(function (path) {
+          var fullPath = type + '/' + path
+          return files[path] = (type == 'fonts' ? btoa(fs.readFileSync(fullPath)) : fs.readFileSync(fullPath, 'utf8'))
+        })
+      return 'var __' + type + ' = ' + JSON.stringify(files) + '\n'
+    }
+
+    var files = getFiles('js') + getFiles('less') + getFiles('fonts')
+    fs.writeFileSync('docs-assets/js/raw-files.js', files)
+  });
 };
