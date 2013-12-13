@@ -131,7 +131,7 @@ ul.navigation {
 	font-weight:400;
 	font-size:14px;
 	line-height:20px;
-	color:#ffd600;
+	color:#be3f1c;
 }
 
 
@@ -239,7 +239,7 @@ h3 {
 	font-weight:800;
 	font-size:15px;
 	line-height:36px;
-	color:#fed531;
+	color: #be3f1c;
 }
 .author_bord {
 	display:inline-block;
@@ -1137,8 +1137,71 @@ a.team_soc2 {
 /* ___________________________________ //FOOTER ___________________________________ */
 
 
+/* ___________________________________ //FORM ___________________________________ */
 
+.Form-container label{
+	line-height: 45px;
+	color: #8C8C92;
+	font-size: 16px;
+}
+.Form-container .field.f_100{
+	font-size: 12px;
+	width: 100%;
+	position: relative;
+	margin-top: 20px;
+	height: 45px;
+}
+.Form-container .footnote{
+	font-size:10px;
+}
 
+.Form-container input{
+	font-family: Helvetica, Arial, sans-serif;
+	height: 40px;
+	width: 69%;
+	max-width: 300px;
+	border-radius: 4px;
+	float: right;
+	font-size: 16px;
+	font-weight: 500;
+	color: #3a3a3c;
+	padding-right: 40px;
+	-webkit-appearance: none;
+	padding: 1px;
+	background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.0)) repeat scroll 0 0 #FFF;
+	border: 2px inset;
+	cursor: auto;
+	padding-left: 7px;
+	border: none;
+	box-shadow: none;
+	}
+#form-submit .btn{
+	display: inline-block;
+	padding: 6px 12px;
+	margin-bottom: 0;
+	font-size: 14px;
+	font-weight: normal;
+	line-height: 1.428571429;
+	text-align: center;
+	vertical-align: middle;
+	cursor: pointer;
+	border: 1px solid transparent;
+	border-radius: 3px;
+	white-space: nowrap;
+	-webkit-user-select: none;
+	-moz-user-select: none;
+	-ms-user-select: none;
+	-o-user-select: none;
+	user-select: none;
+	margin-top: 30px;
+	margin-left: 26px;
+	width: 139px;
+	height: 39px;
+	float: right;
+	color: #fff;
+	background-color: #00aced;
+	border-color: #0099d4;
+}
 
 
 
